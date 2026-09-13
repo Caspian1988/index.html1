@@ -5,12 +5,12 @@ const PORT = 3000;
 
 app.use(express.json());
 
-// Serve static files from public directory
-app.use(express.static(path.join(__dirname, 'public')));
+// Serve the frontend from the project root
+app.use(express.static(__dirname));
 
 // Fallback explicit route for the home page
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 // --- TERMINAL COORDINATES ---
