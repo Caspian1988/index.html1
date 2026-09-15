@@ -163,7 +163,8 @@
             (err) => alert('GPS Error: ' + err.message),
             { enableHighAccuracy: true, maximumAge: 10000, timeout: 5000 }
           );
-          await requestWakeLock();
+          
+          await requestWakeLock(); // Request Screen Wake Lock
 
           btn.innerText = 'Stop GPS Tracking';
           btn.style.background = '#ff9800';
@@ -173,7 +174,8 @@
       } else {
         navigator.geolocation.clearWatch(watchId);
         watchId = null;
-        releaseWakeLock();
+        
+        releaseWakeLock(); // Release Screen Wake Lock
 
         btn.innerText = 'Start Live GPS Tracking';
         btn.style.background = '#00e676';
