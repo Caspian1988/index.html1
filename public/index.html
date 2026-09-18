@@ -27,8 +27,19 @@
 </head>
 <body>
 
-  <h1>Route 6 Tracker by Ramin</h1>
+  <h1>Route 6 Tracker</h1>
   <p class="subtitle">Montgomery Mall ↔ Parkside</p>
+  <!-- NEW WEATHER WIDGET CARD -->
+  <div class="card" id="weatherContainer" style="display:none; margin-bottom: 10px; border: 1px solid #444;">
+    <div style="font-size: 0.8rem; color: #888; text-transform: uppercase;">Current Terminal Forecast</div>
+    <div style="display: flex; align-items: center; justify-content: space-around; padding: 10px 0;">
+      <div id="weatherIcon" style="font-size: 2rem;">--</div>
+      <div>
+        <div id="tempDisplay" style="font-size: 1.5rem; font-weight: bold; color: #fff;">--°F</div>
+        <div id="conditionDisplay" style="font-size: 0.85rem; color: #bbb;">Loading weather...</div>
+      </div>
+    </div>
+  </div>
 
   <div class="card">
     <div class="label">Completed Trips</div>
