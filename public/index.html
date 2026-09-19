@@ -3,91 +3,132 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Route 6 Trip Tracker</title>
+  <title>Route 6 Tracker</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background-color: #121212; color: #f5f5f5; text-align: center; padding: 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
-    h1 { font-size: 1.5rem; color: #00e676; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; }
-    .subtitle { font-size: 0.9rem; color: #888; margin-bottom: 20px; }
-    
-    .card { background: #1e1e1e; border: 1px solid #333; border-radius: 12px; padding: 20px; width: 100%; max-width: 360px; margin-bottom: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-    .history-card { margin-top: 15px; }
-    .counter { font-size: 4rem; font-weight: bold; color: #ffffff; margin: 10px 0; }
-    .label { font-size: 0.85rem; color: #aaa; text-transform: uppercase; letter-spacing: 0.5px; }
-    
-    .status-badge { display: inline-block; padding: 8px 16px; border-radius: 20px; font-weight: 600; font-size: 0.9rem; background: #333; color: #ffd54f; margin-top: 5px; }
-    
-    .btn { background: #00e676; color: #000; border: none; padding: 14px 20px; font-size: 1rem; font-weight: bold; border-radius: 8px; width: 100%; max-width: 360px; cursor: pointer; margin-top: 10px; }
-    .btn:active { opacity: 0.8; }
-    .btn-reset { background: #ff5252; color: #fff; margin-top: 15px; }
-    
-    .log-list { text-align: left; list-style: none; margin-top: 10px; font-size: 0.85rem; color: #ccc; max-height: 150px; overflow-y: auto; }
-    .log-item { padding: 6px 0; border-bottom: 1px solid #2a2a2a; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: #121212;
+      color: #ffffff;
+      margin: 0;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    h1 {
+      margin: 0;
+      font-size: 1.5rem;
+      color: #00e676;
+    }
+    p.subtitle {
+      margin: 4px 0 0 0;
+      font-size: 0.85rem;
+      color: #aaa;
+    }
+    .card {
+      background-color: #1e1e1e;
+      border-radius: 12px;
+      padding: 16px;
+      width: 100%;
+      max-width: 400px;
+      margin-bottom: 16px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+      box-sizing: border-box;
+    }
+    button {
+      background-color: #00e676;
+      color: #121212;
+      border: none;
+      padding: 14px;
+      font-size: 1rem;
+      font-weight: bold;
+      border-radius: 8px;
+      width: 100%;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    .status-text {
+      font-size: 0.9rem;
+      color: #bbb;
+      margin-top: 6px;
+    }
+    .trip-count {
+      font-size: 2.5rem;
+      font-weight: bold;
+      color: #fff;
+      text-align: center;
+      margin: 10px 0;
+    }
   </style>
 </head>
 <body>
 
-  <h1>Route 6 Tracker</h1>
-  <p class="subtitle">Montgomery Mall ↔ Parkside</p>
-  <!-- NEW WEATHER WIDGET CARD -->
-  <div class="card" id="weatherContainer" style="display:none; margin-bottom: 10px; border: 1px solid #444;">
-    <div style="font-size: 0.8rem; color: #888; text-transform: uppercase;">Current Terminal Forecast</div>
-    <div style="display: flex; align-items: center; justify-content: space-around; padding: 10px 0;">
-      <div id="weatherIcon" style="font-size: 2rem;">--</div>
-      <div>
-        <div id="tempDisplay" style="font-size: 1.5rem; font-weight: bold; color: #fff;">--°F</div>
-        <div id="conditionDisplay" style="font-size: 0.85rem; color: #bbb;">Loading weather...</div>
+  <header>
+    <h1>Route 6 Tracker</h1>
+    <p class="subtitle">Developed by Ramin | Montgomery Mall ↔ Parkside</p>
+  </header>
+
+  <!-- WEATHER WIDGET CARD -->
+  <div class="card" id="weatherContainer" style="display:none;">
+    <div style="font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 1px;">Current Terminal Weather</div>
+    <div style="display: flex; align-items: center; justify-content: space-around; margin-top: 10px;">
+      <div id="weatherIcon" style="font-size: 2.5rem;">☀️</div>
+      <div style="text-align: left;">
+        <div id="tempDisplay" style="font-size: 1.8rem; font-weight: bold; color: #fff;">--°F</div>
+        <div id="conditionDisplay" style="font-size: 0.9rem; color: #bbb;">Loading forecast...</div>
       </div>
     </div>
   </div>
 
+  <!-- MAIN SHIFT & TERMINAL TRACKER CARD -->
   <div class="card">
-    <div class="label">Completed Trips</div>
-    <div class="counter" id="tripCount">0</div>
-    <div class="label">Current Status</div>
-    <div class="status-badge" id="currentStatus">STANDBY</div>
-  </div>
-
-  <button class="btn" id="gpsBtn" onclick="toggleGPS()">Start Live GPS Tracking</button>
-
-  <div class="card history-card">
-    <div class="label">Trip History</div>
-    <ul class="log-list" id="historyList">
-      <li class="log-item">No trips logged yet this shift.</li>
-    </ul>
-    <button class="btn btn-reset" onclick="resetShift()">Reset Shift Counter</button>
+    <div style="font-size: 0.85rem; color: #888;">STATUS</div>
+    <div id="terminalStatus" class="status-text">Not Tracking</div>
+    <div class="trip-count" id="tripCounter">0</div>
+    <div style="text-align: center; font-size: 0.85rem; color: #aaa;">Completed Trips</div>
+    
+    <button id="toggleBtn" onclick="toggleTracking()">Start Shift Tracking</button>
   </div>
 
   <script>
-    // --- TERMINALS & GEOFENCE CONFIG ---
+    // --- TERMINALS & GEOFENCING CONFIG ---
     const TERMINALS = {
-      MONTGOMERY_MALL: { name: 'Montgomery Mall TC', lat: 39.0264, lon: -77.1378 },
-      PARKSIDE: { name: 'Parkside / Grosvenor', lat: 39.0232, lon: -77.1042 }
+      PARKSIDE: { name: "Parkside", lat: 39.0225, lon: -77.0972 },
+      MALL: { name: "Montgomery Mall", lat: 39.0251, lon: -77.1464 }
     };
+    const GEOFENCE_RADIUS_METERS = 150;
 
+    // --- APP STATE ---
+    let isTracking = false;
     let watchId = null;
     let wakeLock = null;
+    let tripCount = 0;
+    let lastTerminal = null;
 
-    // Load saved shift data from phone storage
-    let shiftData = JSON.parse(localStorage.getItem('route6_shiftData')) || {
-      totalTrips: 0,
-      lastKnownTerminal: null,
-      tripHistory: []
-    };
-
-    function saveShiftData() {
-      localStorage.setItem('route6_shiftData', JSON.stringify(shiftData));
-      updateUI();
+    // --- HAVERSINE FORMULA (METERS) ---
+    function getDistanceMeters(lat1, lon1, lat2, lon2) {
+      const R = 6371000;
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon / 2) * Math.sin(dLon / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return R * c;
     }
 
-    // --- SCREEN WAKE LOCK LOGIC ---
+    // --- WAKE LOCK API ---
     async function requestWakeLock() {
       try {
         if ('wakeLock' in navigator) {
           wakeLock = await navigator.wakeLock.request('screen');
         }
       } catch (err) {
-        console.log(`Wake Lock Error: ${err.message}`);
+        console.error("Wake Lock Error:", err.message);
       }
     }
 
@@ -98,117 +139,98 @@
       }
     }
 
-    // --- HAVERSINE DISTANCE MATH ---
-    function calculateDistanceInMiles(lat1, lon1, lat2, lon2) {
-      const EARTH_RADIUS_MILES = 3958.8;
-      const dLat = (lat2 - lat1) * (Math.PI / 180);
-      const dLon = (lon2 - lon1) * (Math.PI / 180);
-
-      const a =
-        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-        Math.cos(lat1 * (Math.PI / 180)) *
-          Math.cos(lat2 * (Math.PI / 180)) *
-          Math.sin(dLon / 2) *
-          Math.sin(dLon / 2);
-
-      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-      return EARTH_RADIUS_MILES * c;
-    }
-
-    function checkGeofences(currentLat, currentLon, radiusMiles = 0.06) {
-      const distMontgomery = calculateDistanceInMiles(currentLat, currentLon, TERMINALS.MONTGOMERY_MALL.lat, TERMINALS.MONTGOMERY_MALL.lon);
-      const distParkside = calculateDistanceInMiles(currentLat, currentLon, TERMINALS.PARKSIDE.lat, TERMINALS.PARKSIDE.lon);
-
-      if (distMontgomery <= radiusMiles) return 'MONTGOMERY_MALL';
-      if (distParkside <= radiusMiles) return 'PARKSIDE';
-      return null;
-    }
-
-    // --- PROCESS LIVE GPS UPDATE ---
-    function processLocationUpdate(lat, lon) {
-      const currentTerminal = checkGeofences(lat, lon);
-
-      if (currentTerminal) {
-        if (shiftData.lastKnownTerminal && shiftData.lastKnownTerminal !== currentTerminal) {
-          shiftData.totalTrips += 1;
-          shiftData.tripHistory.push({
-            tripNumber: shiftData.totalTrips,
-            from: TERMINALS[shiftData.lastKnownTerminal].name,
-            to: TERMINALS[currentTerminal].name,
-            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-          });
-        }
-        shiftData.lastKnownTerminal = currentTerminal;
-        saveShiftData();
-      }
-    }
-
-    // --- UI UPDATER ---
-    function updateUI() {
-      document.getElementById('tripCount').innerText = shiftData.totalTrips;
-      
-      const statusBadge = document.getElementById('currentStatus');
-      if (shiftData.lastKnownTerminal) {
-        statusBadge.innerText = TERMINALS[shiftData.lastKnownTerminal].name;
-      } else {
-        statusBadge.innerText = 'IN TRANSIT / STANDBY';
-      }
-
-      const historyList = document.getElementById('historyList');
-      if (shiftData.tripHistory.length > 0) {
-        historyList.innerHTML = shiftData.tripHistory.slice().reverse().map(t => 
-          `<li class="log-item">Trip #${t.tripNumber}: ${t.from} ➔ ${t.to} (${t.timestamp})</li>`
-        ).join('');
-      } else {
-        historyList.innerHTML = '<li class="log-item">No trips logged yet this shift.</li>';
-      }
-    }
-
-    // --- CONTROLS ---
-    async function toggleGPS() {
-      const btn = document.getElementById('gpsBtn');
-      if (watchId === null) {
-        if ('geolocation' in navigator) {
-          watchId = navigator.geolocation.watchPosition(
-            (pos) => processLocationUpdate(pos.coords.latitude, pos.coords.longitude),
-            (err) => alert('GPS Error: ' + err.message),
-            { enableHighAccuracy: true, maximumAge: 10000, timeout: 5000 }
-          );
-          
-          await requestWakeLock(); // Request Screen Wake Lock
-
-          btn.innerText = 'Stop GPS Tracking';
-          btn.style.background = '#ff9800';
-        } else {
-          alert('Geolocation is not supported by your browser.');
-        }
-      } else {
-        navigator.geolocation.clearWatch(watchId);
-        watchId = null;
-        
-        releaseWakeLock(); // Release Screen Wake Lock
-
-        btn.innerText = 'Start Live GPS Tracking';
-        btn.style.background = '#00e676';
-      }
-    }
-
-    function resetShift() {
-      if (confirm('Reset shift trip counter to 0?')) {
-        shiftData = { totalTrips: 0, lastKnownTerminal: null, tripHistory: [] };
-        saveShiftData();
-      }
-    }
-
-    // Re-acquire wake lock if user leaves and returns to browser tab
     document.addEventListener('visibilitychange', async () => {
       if (wakeLock !== null && document.visibilityState === 'visible') {
         await requestWakeLock();
       }
     });
 
-    // Initial render
-    updateUI();
+    // --- WEATHER API ---
+    async function fetchTerminalWeather(lat, lon) {
+      try {
+        const apiUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&temperature_unit=fahrenheit`;
+        const response = await fetch(apiUrl);
+        if (!response.ok) return;
+        const data = await response.json();
+
+        const temp = Math.round(data.current.temperature_2m);
+        const code = data.current.weather_code;
+
+        let icon = '☀️';
+        let desc = 'Clear';
+        if (code > 0 && code <= 3) { icon = '⛅'; desc = 'Partly Cloudy'; }
+        else if (code >= 45 && code <= 48) { icon = '🌫️'; desc = 'Foggy'; }
+        else if (code >= 51 && code <= 67) { icon = '🌧️'; desc = 'Rain'; }
+        else if (code >= 71 && code <= 77) { icon = '❄️'; desc = 'Snow'; }
+        else if (code >= 80 && code <= 99) { icon = '⛈️'; desc = 'Storms'; }
+
+        document.getElementById('weatherContainer').style.display = 'block';
+        document.getElementById('weatherIcon').innerText = icon;
+        document.getElementById('tempDisplay').innerText = `${temp}°F`;
+        document.getElementById('conditionDisplay').innerText = desc;
+      } catch (err) {
+        console.log("Weather error:", err);
+      }
+    }
+
+    // --- GPS PROCESSOR ---
+    function processLocationUpdate(position) {
+      const lat = position.coords.latitude;
+      const lon = position.coords.longitude;
+
+      fetchTerminalWeather(lat, lon);
+
+      const distParkside = getDistanceMeters(lat, lon, TERMINALS.PARKSIDE.lat, TERMINALS.PARKSIDE.lon);
+      const distMall = getDistanceMeters(lat, lon, TERMINALS.MALL.lat, TERMINALS.MALL.lon);
+
+      let currentTerminal = null;
+      if (distParkside <= GEOFENCE_RADIUS_METERS) currentTerminal = "PARKSIDE";
+      if (distMall <= GEOFENCE_RADIUS_METERS) currentTerminal = "MALL";
+
+      const statusEl = document.getElementById('terminalStatus');
+
+      if (currentTerminal) {
+        statusEl.innerText = `At ${TERMINALS[currentTerminal].name}`;
+        if (lastTerminal && lastTerminal !== currentTerminal) {
+          tripCount++;
+          document.getElementById('tripCounter').innerText = tripCount;
+        }
+        lastTerminal = currentTerminal;
+      } else {
+        statusEl.innerText = "In Transit...";
+      }
+    }
+
+    // --- TOGGLE TRACKING ---
+    function toggleTracking() {
+      const btn = document.getElementById('toggleBtn');
+      const statusEl = document.getElementById('terminalStatus');
+
+      if (!isTracking) {
+        if ("geolocation" in navigator) {
+          watchId = navigator.geolocation.watchPosition(
+            processLocationUpdate,
+            (err) => { statusEl.innerText = `GPS Error: ${err.message}`; },
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+          );
+          requestWakeLock();
+          isTracking = true;
+          btn.innerText = "Stop Shift Tracking";
+          btn.style.backgroundColor = "#ff5252";
+          statusEl.innerText = "Acquiring GPS...";
+        } else {
+          alert("Geolocation is not supported by your browser.");
+        }
+      } else {
+        if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+        releaseWakeLock();
+        isTracking = false;
+        btn.innerText = "Start Shift Tracking";
+        btn.style.backgroundColor = "#00e676";
+        statusEl.innerText = "Tracking Stopped";
+        document.getElementById('weatherContainer').style.display = 'none';
+      }
+    }
   </script>
 </body>
 </html>
