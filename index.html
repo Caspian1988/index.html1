@@ -1,104 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Route 6 Tracker</title>
-  <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background-color: #121212;
-      color: #ffffff;
-      margin: 0;
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    header {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    h1 {
-      margin: 0;
-      font-size: 1.5rem;
-      color: #00e676;
-    }
-    p.subtitle {
-      margin: 4px 0 0 0;
-      font-size: 0.85rem;
-      color: #aaa;
-    }
-    .card {
-      background-color: #1e1e1e;
-      border-radius: 12px;
-      padding: 16px;
-      width: 100%;
-      max-width: 400px;
-      margin-bottom: 16px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-      box-sizing: border-box;
-    }
-    button {
-      background-color: #00e676;
-      color: #121212;
-      border: none;
-      padding: 14px;
-      font-size: 1rem;
-      font-weight: bold;
-      border-radius: 8px;
-      width: 100%;
-      cursor: pointer;
-      margin-top: 10px;
-    }
-    button:disabled {
-      background-color: #444;
-      color: #888;
-    }
-    .status-text {
-      font-size: 0.9rem;
-      color: #bbb;
-      margin-top: 6px;
-    }
-    .trip-count {
-      font-size: 2.5rem;
-      font-weight: bold;
-      color: #fff;
-      text-align: center;
-      margin: 10px 0;
-    }
-  </style>
-</head>
-<body>
-
-  <header>
-    <h1>Route 6 Tracker</h1>
-    <p class="subtitle">Developed by Ramin | Montgomery Mall ↔ Parkside</p>
-  </header>
-
-  <!-- LIVE WEATHER WIDGET CARD -->
-  <div class="card" id="weatherContainer" style="display:none;">
-    <div style="font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 1px;">Current Terminal Weather</div>
-    <div style="display: flex; align-items: center; justify-content: space-around; margin-top: 10px;">
-      <div id="weatherIcon" style="font-size: 2.5rem;">☀️</div>
-      <div style="text-align: left;">
-        <div id="tempDisplay" style="font-size: 1.8rem; font-weight: bold; color: #fff;">--°F</div>
-        <div id="conditionDisplay" style="font-size: 0.9rem; color: #bbb;">Loading forecast...</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- MAIN SHIFT & TERMINAL TRACKER CARD -->
-  <div class="card">
-    <div style="font-size: 0.85rem; color: #888;">STATUS</div>
-    <div id="terminalStatus" class="status-text">Not Tracking</div>
-    <div class="trip-count" id="tripCounter">0</div>
-    <div style="text-align: center; font-size: 0.85rem; color: #aaa;">Completed Trips</div>
-
-    <button id="toggleBtn" onclick="toggleTracking()">Start Shift Tracking</button>
-  </div>
-
-  <script>
+<script>
     // --- TERMINALS & GEOFENCING CONFIG ---
     const TERMINALS = {
       PARKSIDE: { name: "Parkside", lat: 39.0225, lon: -77.0972 },
@@ -115,7 +15,7 @@
 
     // --- HAVERSINE FORMULA (DISTANCE IN METERS) ---
     function getDistanceMeters(lat1, lon1, lat2, lon2) {
-      const R = 6371000; // Earth radius in meters
+      const R = 6371000;
       const dLat = (lat2 - lat1) * Math.PI / 180;
       const dLon = (lon2 - lon1) * Math.PI / 180;
       const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
@@ -130,7 +30,6 @@
       try {
         if ('wakeLock' in navigator) {
           wakeLock = await navigator.wakeLock.request('screen');
-          console.log('Screen Wake Lock active');
         }
       } catch (err) {
         console.error(`Wake Lock Error: ${err.message}`);
@@ -141,22 +40,19 @@
       if (wakeLock !== null) {
         wakeLock.release();
         wakeLock = null;
-        console.log('Screen Wake Lock released');
       }
     }
 
-    // Re-apply wake lock if browser tab comes back to foreground
     document.addEventListener('visibilitychange', async () => {
       if (wakeLock !== null && document.visibilityState === 'visible') {
         await requestWakeLock();
       }
     });
 
-    // --- LIVE WEATHER API CALL (OPEN-METEO) ---
+    // --- LIVE WEATHER API CALL (ISOLATED) ---
     async function fetchTerminalWeather(lat, lon) {
-      const apiUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&temperature_unit=fahrenheit`;
-
       try {
+        const apiUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&temperature_unit=fahrenheit`;
         const response = await fetch(apiUrl);
         if (!response.ok) return;
         const data = await response.json();
@@ -177,19 +73,19 @@
         document.getElementById('tempDisplay').innerText = `${temp}°F`;
         document.getElementById('conditionDisplay').innerText = desc;
       } catch (err) {
-        console.log("Weather error:", err);
+        console.log("Weather fetch failed safely:", err);
       }
     }
 
-    // --- PROCESS GPS UPDATES ---
+    // --- CORE GPS & TRIP LOGIC ---
     function processLocationUpdate(position) {
       const lat = position.coords.latitude;
       const lon = position.coords.longitude;
 
-      // Fetch live weather for current coordinates
+      // 1. SAFE WEATHER FETCH (Runs in background)
       fetchTerminalWeather(lat, lon);
 
-      // Check proximity to terminals
+      // 2. TERMINAL GEOFENCING & TRIP COUNTING
       const distParkside = getDistanceMeters(lat, lon, TERMINALS.PARKSIDE.lat, TERMINALS.PARKSIDE.lon);
       const distMall = getDistanceMeters(lat, lon, TERMINALS.MALL.lat, TERMINALS.MALL.lon);
 
@@ -201,8 +97,8 @@
 
       if (currentTerminal) {
         statusEl.innerText = `At ${TERMINALS[currentTerminal].name}`;
-
-        // Count a completed leg when moving from one terminal to the other
+        
+        // Log trip when arriving at a new terminal
         if (lastTerminal && lastTerminal !== currentTerminal) {
           tripCount++;
           document.getElementById('tripCounter').innerText = tripCount;
@@ -213,7 +109,7 @@
       }
     }
 
-    // --- TRACKING TOGGLE ---
+    // --- TOGGLE TRACKING ---
     function toggleTracking() {
       const btn = document.getElementById('toggleBtn');
       const statusEl = document.getElementById('terminalStatus');
@@ -244,5 +140,3 @@
       }
     }
   </script>
-</body>
-</html>
